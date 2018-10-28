@@ -1,5 +1,11 @@
+import java.io.File;     
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
 public class bigMain {
 
+
+	
 public static void main(String[] args) {
 double[] target = new double[4];
 target[0] = 0.01;
@@ -12,49 +18,147 @@ loss[1] = 0.02;
 loss[2] = 0.05;
 loss[3] = 0.1;
 
-String path = "/Users/jorgebarrameda/Desktop/Data/";//Enter your own Path here 
+String path = "/Users/jorgebarrameda/Desktop/Data/";
 
-for (int i = 0; i < 4; i++) {//test all combinations of loss and target
-	for (int j = 0; j < 4; j++) {
-		Simulator sim = new Simulator(path, "Stocks.txt", loss[i], target[j]);
-	    sim.run();
+for (int i = 0; i < 4; i++) {
+for (int j = 0; j < 4; j++) {
 
-		tradeArray Tr = sim.getTrades();
-		//print the stats; put the company symbol too
-		System.out.println("Loss:"+loss[i] + ", " +"Target:"+target[j] +","+ Tr.getStats().toString());
-		
-		//Simulator simETF = new Simulator(path, "ETFs.txt", loss[i], target[j]);
-		//simETF.run();
-		
-		//Tr = simETF.getTrades();
-		//print the stats
-		//System.out.println("Loss:"+loss[i] + ", " + "Target:"+target[j] + "," + Tr.getStats().toString());
-				
+Simulator sim = new Simulator(path, "Stocks.txt", loss[i], target[j]);
+sim.run();
+Simulator simETF = new Simulator(path, "ETFs.txt", loss[i], target[j]);
+simETF.run();
+
+tradeArray Tr1 = sim.getTrades();
+tradeArray Tr2 = simETF.getTrades();
+
+//print the trades for Stocks (entryprice, exitprice etc)
+System.out.println(Tr1.toString());
+
+//print trades for ETFs(entryprice, exitprice etc)
+//System.out.println(Tr2.toString());
+
+//Print Stocks pattern outcome
+System.out.println("|STOCKS|" + "\tLoss:"+loss[i] + "\tTarget:"+target[j] +"\t"+Tr1.getStats().toString());
+System.out.println();
+
+//Print ETFs pattern outcome
+System.out.println("|ETF|" +"\t\tLoss:"+loss[i] + "\tTarget:"+target[j] +"\t"+ " "+Tr2.getStats().toString());
+System.out.println();
+
+//Print Stocks+ETFs outcome
+Tr1.addArray(Tr2);
+System.out.println("|STOCKS+ETF|"+ "\tLoss:" +loss[i]+"\tTarget:"+target[j] + "\t"+Tr1.getStats().toString());
+System.out.println();
+
+
 	}
+}  
+
+
+
+//Write Stocks to CSV
+PrintWriter pw = null;
+StringBuilder builder = new StringBuilder();
+try {
+	pw = new PrintWriter(new File("Stock.csv"));
+}catch(FileNotFoundException e) {
+	e.printStackTrace();
 }
 
-//TODO: Run Simulator for Stocks, ETFs separately and check output if stats are correct.
-//then run Stocks + ETF together and check output for stats.
-Simulator sim = new Simulator(path, "Stocks.txt", 0.0, 0.0);
+
+String Collist = "Loss," + " "+ "Target,"+"NumTrades,"+ "NumLong,"+ "NumShort,"+ "%Winners," +"AveragePL%,"+"AvrgHoldingPeriod,"+"WinnerLong,"+"AvrgPLLong,"+"WinShort,"+"AvrgPLShort";
+builder.append(Collist + "\n");
+
+for(int k =0; k <  4; k++) {
+for(int z=0;  z  <  4; z++) {
+
+Simulator sim = new Simulator(path, "Stocks.txt", loss[k], target[z]);
 sim.run();
 
-//display the stats for these parameters loss[i], target[j]
+
 tradeArray Tr = sim.getTrades();
 
-//print the stats
-System.out.println("Loss:"+0.1 + ", " +"Target:" +0.01 + Tr.getStats().toString());
 
-//Simulator simETF = new Simulator(path, "ETFs.txt", 0.0, 0.0);
-//simETF.run();
 
-//display the stats for these parameters loss[i], target[j]
-//tradeArray Tr1 = simETF.getTrades();
-
-//print the stats
-//System.out.println(0.1 + ", " + 0.01 + Tr1.getStats().toString());
-
-//Print stats for the combination add the trades together
-//Tr.addArray(Tr1);
-//System.out.println(0.1 + ", " + 0.01 + Tr.getStats().toString());
+builder.append(loss[k] +","+ target[z]+","+ Tr.getStats().toString2());
+builder.append('\n');
 	}
 }
+pw.write(builder.toString());
+pw.flush();
+pw.close();
+
+
+//Write ETF to CSV
+
+PrintWriter pw2 = null;
+StringBuilder builder2 = new StringBuilder();
+try {
+	pw2 = new PrintWriter(new File("ETF.csv"));
+}catch(FileNotFoundException e) {
+	e.printStackTrace();
+}
+
+String Collist2 = "Loss," + "Target,"+"NumTrades,"+ "NumLong,"+ "NumShort,"+ "%Winners," +"AveragePL%,"+"AvrgHoldingPeriod,"+"WinnerLong,"+"AvrgPLLong,"+"WinShort,"+"AvrgPLShort";
+builder2.append(Collist2 + "\n");
+
+for(int k =0; k <  4; k++) {
+for(int z=0;  z  <  4; z++) {
+
+
+Simulator simETF = new Simulator(path, "ETFs.txt", loss[k], target[z]);
+simETF.run();
+
+tradeArray Tr1 = simETF.getTrades();
+
+
+builder2.append(loss[k] +","+ target[z]+","+Tr1.getStats().toString2());
+builder2.append('\n');
+	}
+}
+pw2.write(builder2.toString());
+pw2.flush();
+pw2.close();
+
+
+
+//Write Stocks + ETF both
+PrintWriter pw3 = null;
+StringBuilder builder3 = new StringBuilder();
+try {
+	pw3 = new PrintWriter(new File("Stocks+ETF.csv"));
+}catch(FileNotFoundException e) {
+	e.printStackTrace();
+}
+
+String Collist3 = "Loss," + "Target,"+"NumTrades,"+ "NumLong,"+ "NumShort,"+ "%Winners," +"AveragePL%,"+"AvrgHoldingPeriod,"+"WinnerLong,"+"AvrgPLLong,"+"WinShort,"+"AvrgPLShort";
+builder3.append(Collist3 + "\n");
+
+for(int k =0; k <  4; k++) {
+for(int z=0;  z  <  4; z++) {
+
+Simulator sim = new Simulator(path, "Stocks.txt", loss[k], target[z]);
+sim.run();
+Simulator simETF = new Simulator(path, "ETFs.txt", loss[k], target[z]);
+simETF.run();
+
+tradeArray Tr1 = sim.getTrades();
+tradeArray Tr2 = simETF.getTrades();
+
+Tr1.addArray(Tr2);
+
+builder3.append(loss[k] +","+ target[z]+"," +Tr1.getStats().toString2());
+builder3.append('\n');
+	}
+}
+pw3.write(builder3.toString());
+pw3.flush();
+pw3.close();
+
+
+
+
+	}
+
+}
+

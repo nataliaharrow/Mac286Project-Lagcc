@@ -1,8 +1,8 @@
-import java.util.*;
+import java.util.Vector;
 
 public class barArray {
 
-//has member Vector of bars
+
 Vector<Bar> list;
 
 public barArray() {
